@@ -1,6 +1,3 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
 
 on:
@@ -24,19 +21,28 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Publish
+      run: dotnet publish --configuration Release --output ./webapp
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: webapp
+        path: ./webapp
+
   deploy: 
     runs-on: ubuntu-latest
-    needs: build 
+    needs: build
     steps:
-    - name: Download a Build Artifact
+    - name: Download Build Artifact
       uses: actions/download-artifact@v4.1.8
       with:
         name: webapp
-        path: webapp
+        path: ./webapp
+
     - name: Deploy web app
       uses: azure/webapps-deploy@v2
       with:
         app-name: GitHubApp-45660524
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }}
-        package: webapp
-          
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: ./webapp
